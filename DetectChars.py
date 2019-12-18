@@ -1,4 +1,4 @@
-# DetectChars.py
+
 import os
 
 import cv2
@@ -10,7 +10,7 @@ import Main
 import Preprocess
 import PossibleChar
 
-# module level variables ##########################################################################
+
 
 kNearest = cv2.ml.KNearest_create()
 

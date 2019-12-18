@@ -15,35 +15,35 @@ SCALAR_YELLOW = (0.0, 255.0, 255.0)
 SCALAR_GREEN = (0.0, 255.0, 0.0)
 SCALAR_RED = (0.0, 0.0, 255.0)
 
-showSteps = True
+showSteps = False
 
 ###################################################################################################
 def main():
 
     blnKNNTrainingSuccessful = DetectChars.loadKNNDataAndTrainKNN()         # attempt KNN training
 
-    if blnKNNTrainingSuccessful == False:                               # if KNN training was not successful
-        print("\nerror: KNN traning was not successful\n")  # show error message
-        return                                                          # and exit program
+    if blnKNNTrainingSuccessful == False:                               # nếu train không thành công
+        print("\nerror: KNN traning was not successful\n")  # thông báo lỗi
+        return                                                          # kết thúc chương trình
     # end if
 
-    imgOriginalScene  = cv2.imread("17.jpg")               # open image
+    imgOriginalScene  = cv2.imread("1.jpg")               # mở image được chọn
 
-    if imgOriginalScene is None:                            # if image was not read successfully
-        print("\nerror: image not read from file \n\n")  # print error message to std out
-        os.system("pause")                                  # pause so user can see error message
-        return                                              # and exit program
+    if imgOriginalScene is None:                            # nếu hình ảnh không được nhận diện thành công
+        print("\nerror: image not read from file \n\n")  # in ra màn hình
+        os.system("pause")                                  # tạm dừng chương trình
+        return                                              # kết thúc chương trình
     # end if
 
-    listOfPossiblePlates = DetectPlates.detectPlatesInScene(imgOriginalScene)           # detect plates
+    listOfPossiblePlates = DetectPlates.detectPlatesInScene(imgOriginalScene)           # phát hiện image
 
-    listOfPossiblePlates = DetectChars.detectCharsInPlates(listOfPossiblePlates)        # detect chars in plates
+    listOfPossiblePlates = DetectChars.detectCharsInPlates(listOfPossiblePlates)        # tìm thấy kí tự trong image
 
-    cv2.imshow("imgOriginalScene", imgOriginalScene)            # show scene image
+    cv2.imshow("imgOriginalScene", imgOriginalScene)            # hiển thị image
 
-    if len(listOfPossiblePlates) == 0:                          # if no plates were found
-        print("\nno license plates were detected\n")  # inform user no plates were found
-    else:                                                       # else
+    if len(listOfPossiblePlates) == 0:                          # nếu không tìm thấy ký tự
+        print("\nno license plates were detected\n")  # thông báo trên màn hình không tìm thấy hình
+    else:
                 # if we get in here list of possible plates has at leat one plate
 
                 # sort the list of possible plates in DESCENDING order (most number of chars to least number of chars)
@@ -52,33 +52,33 @@ def main():
                 # suppose the plate with the most recognized chars (the first plate in sorted by string length descending order) is the actual plate
         licPlate = listOfPossiblePlates[0]
 
-        cv2.imshow("imgPlate", licPlate.imgPlate)           # show crop of plate and threshold of plate
+        cv2.imshow("imgPlate", licPlate.imgPlate)           # hiển thị tấm biển số
         cv2.imshow("imgThresh", licPlate.imgThresh)
 
-        if len(licPlate.strChars) == 0:                     # if no chars were found in the plate
-            print("\nno characters were detected\n\n")  # show message
-            return                                          # and exit program
-        # end if
+        if len(licPlate.strChars) == 0:                     # nếu không tìm thấy ký tự trên biển số
+            print("\nno characters were detected\n\n")  # hiện thị tin nhắn
+            return                                          # kết thúc chương trình
 
-        drawRedRectangleAroundPlate(imgOriginalScene, licPlate)             # draw red rectangle around plate
 
-        print("\nlicense plate read from image = " + licPlate.strChars + "\n")  # write license plate text to std out
+        drawRedRectangleAroundPlate(imgOriginalScene, licPlate)             # khoanh viền đỏ xác định định biển số xe
+
+        print("\nlicense plate read from image = " + licPlate.strChars + "\n")  # in ra biển số dưới console
         print("----------------------------------------")
 
-        writeLicensePlateCharsOnImage(imgOriginalScene, licPlate)           # write license plate text on the image
+        writeLicensePlateCharsOnImage(imgOriginalScene, licPlate)           # hiện thị biển số dưới dạng text trên ảnh
 
-        cv2.imshow("imgOriginalScene", imgOriginalScene)                # re-show scene image
+        cv2.imshow("imgOriginalScene", imgOriginalScene)                # show lại hình hảnh toàn cảnh
 
-        cv2.imwrite("imgOriginalScene.png", imgOriginalScene)           # write image out to file
+        cv2.imwrite("imgOriginalScene.png", imgOriginalScene)           # ghi hình ảnh ra
 
-    # end if else
 
-    cv2.waitKey(0)					# hold windows open until user presses a key
+
+    cv2.waitKey(0)
 
     return
-# end main
 
-###################################################################################################
+
+
 def drawRedRectangleAroundPlate(imgOriginalScene, licPlate):
 
     p2fRectPoints = cv2.boxPoints(licPlate.rrLocationOfPlateInScene)            # get 4 vertices of rotated rect
@@ -87,9 +87,9 @@ def drawRedRectangleAroundPlate(imgOriginalScene, licPlate):
     cv2.line(imgOriginalScene, tuple(p2fRectPoints[1]), tuple(p2fRectPoints[2]), SCALAR_RED, 2)
     cv2.line(imgOriginalScene, tuple(p2fRectPoints[2]), tuple(p2fRectPoints[3]), SCALAR_RED, 2)
     cv2.line(imgOriginalScene, tuple(p2fRectPoints[3]), tuple(p2fRectPoints[0]), SCALAR_RED, 2)
-# end function
 
-###################################################################################################
+
+
 def writeLicensePlateCharsOnImage(imgOriginalScene, licPlate):
     ptCenterOfTextAreaX = 0                             # this will be the center of the area the text will be written to
     ptCenterOfTextAreaY = 0
