@@ -14,7 +14,7 @@ import PossibleChar
 
 kNearest = cv2.ml.KNearest_create()
 
-        # constants for checkIfPossibleChar, this checks one possible char only (does not compare to another char)
+
 MIN_PIXEL_WIDTH = 2
 MIN_PIXEL_HEIGHT = 8
 
@@ -23,7 +23,7 @@ MAX_ASPECT_RATIO = 1.0
 
 MIN_PIXEL_AREA = 80
 
-        # constants for comparing two chars
+
 MIN_DIAG_SIZE_MULTIPLE_AWAY = 0.3
 MAX_DIAG_SIZE_MULTIPLE_AWAY = 5.0
 
@@ -34,7 +34,7 @@ MAX_CHANGE_IN_HEIGHT = 0.2
 
 MAX_ANGLE_BETWEEN_CHARS = 12.0
 
-        # other constants
+
 MIN_NUMBER_OF_MATCHING_CHARS = 3
 
 RESIZED_CHAR_IMAGE_WIDTH = 20
@@ -42,90 +42,90 @@ RESIZED_CHAR_IMAGE_HEIGHT = 30
 
 MIN_CONTOUR_AREA = 100
 
-###################################################################################################
+
 def loadKNNDataAndTrainKNN():
-    allContoursWithData = []                # declare empty lists,
-    validContoursWithData = []              # we will fill these shortly
+    allContoursWithData = []
+    validContoursWithData = []
 
     try:
-        npaClassifications = np.loadtxt("classifications.txt", np.float32)                  # read in training classifications
-    except:                                                                                 # if file could not be opened
-        print("error, unable to open classifications.txt, exiting program\n")  # show error message
+        npaClassifications = np.loadtxt("classifications.txt", np.float32)
+    except:
+        print("error, unable to open classifications.txt, exiting program\n")
         os.system("pause")
-        return False                                                                        # and return False
-    # end try
+        return False
+
 
     try:
-        npaFlattenedImages = np.loadtxt("flattened_images.txt", np.float32)                 # read in training images
-    except:                                                                                 # if file could not be opened
-        print("error, unable to open flattened_images.txt, exiting program\n")  # show error message
+        npaFlattenedImages = np.loadtxt("flattened_images.txt", np.float32)
+    except:
+        print("error, unable to open flattened_images.txt, exiting program\n")
         os.system("pause")
-        return False                                                                        # and return False
-    # end try
+        return False
 
-    npaClassifications = npaClassifications.reshape((npaClassifications.size, 1))       # reshape numpy array to 1d, necessary to pass to call to train
 
-    kNearest.setDefaultK(1)                                                             # set default K to 1
+    npaClassifications = npaClassifications.reshape((npaClassifications.size, 1))
 
-    kNearest.train(npaFlattenedImages, cv2.ml.ROW_SAMPLE, npaClassifications)           # train KNN object
+    kNearest.setDefaultK(1)
 
-    return True                             # if we got here training was successful so return true
-# end function
+    kNearest.train(npaFlattenedImages, cv2.ml.ROW_SAMPLE, npaClassifications)
 
-###################################################################################################
+    return True
+
+
+
 def detectCharsInPlates(listOfPossiblePlates):
     intPlateCounter = 0
     imgContours = None
     contours = []
 
-    if len(listOfPossiblePlates) == 0:          # if list of possible plates is empty
-        return listOfPossiblePlates             # return
-    # end if
+    if len(listOfPossiblePlates) == 0:         
+        return listOfPossiblePlates
 
-            # at this point we can be sure the list of possible plates has at least one plate
 
-    for possiblePlate in listOfPossiblePlates:          # for each possible plate, this is a big for loop that takes up most of the function
 
-        possiblePlate.imgGrayscale, possiblePlate.imgThresh = Preprocess.preprocess(possiblePlate.imgPlate)     # preprocess to get grayscale and threshold images
 
-        if Main.showSteps == True: # show steps ###################################################
+    for possiblePlate in listOfPossiblePlates:
+
+        possiblePlate.imgGrayscale, possiblePlate.imgThresh = Preprocess.preprocess(possiblePlate.imgPlate)     # chuyển anh sang thang màu xám
+
+        if Main.showSteps == True:
             cv2.imshow("5a", possiblePlate.imgPlate)
             cv2.imshow("5b", possiblePlate.imgGrayscale)
             cv2.imshow("5c", possiblePlate.imgThresh)
-        # end if # show steps #####################################################################
 
-                # increase size of plate image for easier viewing and char detection
+
+                # tăng kích thước image để phát hiện chả tốt hơn
         possiblePlate.imgThresh = cv2.resize(possiblePlate.imgThresh, (0, 0), fx = 1.6, fy = 1.6)
 
-                # threshold again to eliminate any gray areas
+                # bỏ khu vực màu xem giữ lại các nét trên hình
         thresholdValue, possiblePlate.imgThresh = cv2.threshold(possiblePlate.imgThresh, 0.0, 255.0, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-        if Main.showSteps == True: # show steps ###################################################
+        if Main.showSteps == True:
             cv2.imshow("5d", possiblePlate.imgThresh)
-        # end if # show steps #####################################################################
 
-                # find all possible chars in the plate,
-                # this function first finds all contours, then only includes contours that could be chars (without comparison to other chars yet)
+
+                # tìm tất cả các ký tự trên hình
+                # tìm các các đường viên sau đó khoanh viền các chuỗi có thể là ký tự
         listOfPossibleCharsInPlate = findPossibleCharsInPlate(possiblePlate.imgGrayscale, possiblePlate.imgThresh)
 
-        if Main.showSteps == True: # show steps ###################################################
+        if Main.showSteps == True:
             height, width, numChannels = possiblePlate.imgPlate.shape
             imgContours = np.zeros((height, width, 3), np.uint8)
-            del contours[:]                                         # clear the contours list
+            del contours[:]
 
             for possibleChar in listOfPossibleCharsInPlate:
                 contours.append(possibleChar.contour)
-            # end for
+
 
             cv2.drawContours(imgContours, contours, -1, Main.SCALAR_WHITE)
 
             cv2.imshow("6", imgContours)
-        # end if # show steps #####################################################################
 
-                # given a list of all possible chars, find groups of matching chars within the plate
+
+
         listOfListsOfMatchingCharsInPlate = findListOfListsOfMatchingChars(listOfPossibleCharsInPlate)
 
-        if Main.showSteps == True: # show steps ###################################################
+        if Main.showSteps == True:
             imgContours = np.zeros((height, width, 3), np.uint8)
             del contours[:]
 

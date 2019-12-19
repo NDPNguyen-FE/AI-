@@ -1,4 +1,4 @@
-# Main.py
+
 
 import cv2
 import numpy as np
@@ -8,7 +8,7 @@ import DetectChars
 import DetectPlates
 import PossiblePlate
 
-# module level variables ##########################################################################
+
 SCALAR_BLACK = (0.0, 0.0, 0.0)
 SCALAR_WHITE = (255.0, 255.0, 255.0)
 SCALAR_YELLOW = (0.0, 255.0, 255.0)
@@ -17,15 +17,14 @@ SCALAR_RED = (0.0, 0.0, 255.0)
 
 showSteps = False
 
-###################################################################################################
 def main():
 
-    blnKNNTrainingSuccessful = DetectChars.loadKNNDataAndTrainKNN()         # attempt KNN training
+    blnKNNTrainingSuccessful = DetectChars.loadKNNDataAndTrainKNN()
 
     if blnKNNTrainingSuccessful == False:                               # nếu train không thành công
         print("\nerror: KNN traning was not successful\n")  # thông báo lỗi
         return                                                          # kết thúc chương trình
-    # end if
+
 
     imgOriginalScene  = cv2.imread("1.jpg")               # mở image được chọn
 
@@ -44,12 +43,12 @@ def main():
     if len(listOfPossiblePlates) == 0:                          # nếu không tìm thấy ký tự
         print("\nno license plates were detected\n")  # thông báo trên màn hình không tìm thấy hình
     else:
-                # if we get in here list of possible plates has at leat one plate
 
-                # sort the list of possible plates in DESCENDING order (most number of chars to least number of chars)
+
+
         listOfPossiblePlates.sort(key = lambda possiblePlate: len(possiblePlate.strChars), reverse = True)
 
-                # suppose the plate with the most recognized chars (the first plate in sorted by string length descending order) is the actual plate
+
         licPlate = listOfPossiblePlates[0]
 
         cv2.imshow("imgPlate", licPlate.imgPlate)           # hiển thị tấm biển số
@@ -81,9 +80,9 @@ def main():
 
 def drawRedRectangleAroundPlate(imgOriginalScene, licPlate):
 
-    p2fRectPoints = cv2.boxPoints(licPlate.rrLocationOfPlateInScene)            # get 4 vertices of rotated rect
+    p2fRectPoints = cv2.boxPoints(licPlate.rrLocationOfPlateInScene)
 
-    cv2.line(imgOriginalScene, tuple(p2fRectPoints[0]), tuple(p2fRectPoints[1]), SCALAR_RED, 2)         # draw 4 red lines
+    cv2.line(imgOriginalScene, tuple(p2fRectPoints[0]), tuple(p2fRectPoints[1]), SCALAR_RED, 2)         # vẽ 4 đường màu đỏ
     cv2.line(imgOriginalScene, tuple(p2fRectPoints[1]), tuple(p2fRectPoints[2]), SCALAR_RED, 2)
     cv2.line(imgOriginalScene, tuple(p2fRectPoints[2]), tuple(p2fRectPoints[3]), SCALAR_RED, 2)
     cv2.line(imgOriginalScene, tuple(p2fRectPoints[3]), tuple(p2fRectPoints[0]), SCALAR_RED, 2)
@@ -91,45 +90,45 @@ def drawRedRectangleAroundPlate(imgOriginalScene, licPlate):
 
 
 def writeLicensePlateCharsOnImage(imgOriginalScene, licPlate):
-    ptCenterOfTextAreaX = 0                             # this will be the center of the area the text will be written to
+    ptCenterOfTextAreaX = 0
     ptCenterOfTextAreaY = 0
 
-    ptLowerLeftTextOriginX = 0                          # this will be the bottom left of the area that the text will be written to
+    ptLowerLeftTextOriginX = 0
     ptLowerLeftTextOriginY = 0
 
     sceneHeight, sceneWidth, sceneNumChannels = imgOriginalScene.shape
     plateHeight, plateWidth, plateNumChannels = licPlate.imgPlate.shape
 
-    intFontFace = cv2.FONT_HERSHEY_SIMPLEX                      # choose a plain jane font
-    fltFontScale = float(plateHeight) / 30.0                    # base font scale on height of plate area
-    intFontThickness = int(round(fltFontScale * 1.5))           # base font thickness on font scale
+    intFontFace = cv2.FONT_HERSHEY_SIMPLEX
+    fltFontScale = float(plateHeight) / 30.0
+    intFontThickness = int(round(fltFontScale * 1.5))
 
-    textSize, baseline = cv2.getTextSize(licPlate.strChars, intFontFace, fltFontScale, intFontThickness)        # call getTextSize
+    textSize, baseline = cv2.getTextSize(licPlate.strChars, intFontFace, fltFontScale, intFontThickness)
 
-            # unpack roatated rect into center point, width and height, and angle
+
     ( (intPlateCenterX, intPlateCenterY), (intPlateWidth, intPlateHeight), fltCorrectionAngleInDeg ) = licPlate.rrLocationOfPlateInScene
 
-    intPlateCenterX = int(intPlateCenterX)              # make sure center is an integer
+    intPlateCenterX = int(intPlateCenterX)
     intPlateCenterY = int(intPlateCenterY)
 
-    ptCenterOfTextAreaX = int(intPlateCenterX)         # the horizontal location of the text area is the same as the plate
+    ptCenterOfTextAreaX = int(intPlateCenterX)
 
-    if intPlateCenterY < (sceneHeight * 0.75):                                                  # if the license plate is in the upper 3/4 of the image
-        ptCenterOfTextAreaY = int(round(intPlateCenterY)) + int(round(plateHeight * 1.6))      # write the chars in below the plate
-    else:                                                                                       # else if the license plate is in the lower 1/4 of the image
-        ptCenterOfTextAreaY = int(round(intPlateCenterY)) - int(round(plateHeight * 1.6))      # write the chars in above the plate
-    # end if
+    if intPlateCenterY < (sceneHeight * 0.75):
+        ptCenterOfTextAreaY = int(round(intPlateCenterY)) + int(round(plateHeight * 1.6))
+    else:
+        ptCenterOfTextAreaY = int(round(intPlateCenterY)) - int(round(plateHeight * 1.6))
 
-    textSizeWidth, textSizeHeight = textSize                # unpack text size width and height
 
-    ptLowerLeftTextOriginX = int(ptCenterOfTextAreaX - (textSizeWidth / 2))           # calculate the lower left origin of the text area
-    ptLowerLeftTextOriginY = int(ptCenterOfTextAreaY + (textSizeHeight / 2))          # based on the text area center, width, and height
+    textSizeWidth, textSizeHeight = textSize
 
-            # write the text on the image
+    ptLowerLeftTextOriginX = int(ptCenterOfTextAreaX - (textSizeWidth / 2))
+    ptLowerLeftTextOriginY = int(ptCenterOfTextAreaY + (textSizeHeight / 2))
+
+
     cv2.putText(imgOriginalScene, licPlate.strChars, (ptLowerLeftTextOriginX, ptLowerLeftTextOriginY), intFontFace, fltFontScale, SCALAR_YELLOW, intFontThickness)
-# end function
 
-###################################################################################################
+
+
 if __name__ == "__main__":
     main()
 
