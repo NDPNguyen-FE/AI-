@@ -11,13 +11,13 @@ import DetectChars
 import PossiblePlate
 import PossibleChar
 
-# module level variables ##########################################################################
+
 PLATE_WIDTH_PADDING_FACTOR = 1.3
 PLATE_HEIGHT_PADDING_FACTOR = 1.5
 
-###################################################################################################
+
 def detectPlatesInScene(imgOriginalScene):
-    listOfPossiblePlates = []                   # this will be the return value
+    listOfPossiblePlates = []
 
     height, width, numChannels = imgOriginalScene.shape
 
